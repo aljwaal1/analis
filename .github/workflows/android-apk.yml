@@ -55,7 +55,7 @@ jobs:
         uses: android-actions/setup-android@v3
 
       - name: Install Android platform
-        run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
+        run: sdkmanager "platforms;android-35" "build-tools;35.0.0" >/dev/null
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
@@ -63,8 +63,22 @@ jobs:
           gradle-version: '8.10.2'
 
       - name: Build APK
+        id: apk_build
+        continue-on-error: true
         working-directory: repo/android-app
-        run: gradle assembleDebug --stacktrace
+        run: gradle assembleDebug --stacktrace --console=plain > /tmp/gradle-build.log 2>&1
+
+      - name: Upload build diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Android-Build-Diagnostics
+          path: /tmp/gradle-build.log
+          if-no-files-found: error
+
+      - name: Stop on build failure
+        if: steps.apk_build.outcome != 'success'
+        run: exit 1
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
