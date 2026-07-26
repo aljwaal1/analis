@@ -45,7 +45,15 @@ jobs:
           mkdir android-app
           tar -xJf /tmp/android-app.tar.xz -C android-app
           sed -i 's/minSdk 24/minSdk 26/' android-app/app/build.gradle
+          cat > android-app/gradle.properties <<'EOF'
+          org.gradle.jvmargs=-Xmx5g -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8
+          org.gradle.workers.max=2
+          org.gradle.parallel=false
+          org.gradle.daemon=false
+          android.useAndroidX=true
+          EOF
           grep 'minSdk 26' android-app/app/build.gradle
+          cat android-app/gradle.properties
 
       - name: Set up Java 17
         uses: actions/setup-java@v4
