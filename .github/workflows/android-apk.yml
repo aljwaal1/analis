@@ -28,10 +28,15 @@ jobs:
         run: |
           set -euxo pipefail
           wc -c android-app-source.part-*
+          for f in android-app-source.part-01 android-app-source.part-02; do
+            echo "PREFIX_HASHES $f"
+            for n in 1000 2000 4000 6000 7000 8000 10000 12000; do
+              printf '%s ' "$n"
+              head -c "$n" "$f" | sha256sum
+            done
+          done
           cat android-app-source.part-* > /tmp/android-app-source.b64
           base64 --decode /tmp/android-app-source.b64 > /tmp/android-app-source.tar.xz
-          wc -c /tmp/android-app-source.tar.xz
-          sha256sum /tmp/android-app-source.tar.xz
           xz --test /tmp/android-app-source.tar.xz
           mkdir -p android-app
           tar -xJf /tmp/android-app-source.tar.xz -C android-app
