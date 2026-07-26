@@ -20,15 +20,42 @@ jobs:
         shell: bash
         run: git clone --quiet --depth 1 --branch android-professional-apk https://github.com/aljwaal1/analis.git repo
 
-      - name: Restore Android project
+      - name: Restore verified Android project
         shell: bash
         working-directory: repo
         run: |
           set -euo pipefail
-          echo PART02_BAD_BLOCK
-          dd if=android-app-source.part-02 bs=1 skip=9700 count=100 status=none; echo
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib
+
+          expected = {
+              'android-app-source.part-00': 'df1d2a2c0065fd8a0077c0ec871b953a3ac514aaf03aba923ce0504b4cedc436',
+              'android-app-source.part-01': 'dcebaf208a466d8b0e1867e3268b0476d0301dcca4985089c0ccdf9ca6f75b9f',
+              'android-app-source.part-02': '65906d5e3bb57f40c1da963022f7069c0c0530866e7c3f48c70af7ab7e356eba',
+          }
+
+          p1 = Path('android-app-source.part-01')
+          s1 = p1.read_text(encoding='utf-8')
+          if len(s1) == 13999:
+              assert s1[11897] == 'l'
+              s1 = s1[:11897] + 'p' + s1[11898:] + 'Z'
+              p1.write_text(s1, encoding='utf-8')
+
+          p2 = Path('android-app-source.part-02')
+          s2 = p2.read_text(encoding='utf-8')
+          if len(s2) == 12847:
+              assert s2[9753] == 'a'
+              s2 = s2[:9753] + 'm' + s2[9753:]
+              p2.write_text(s2, encoding='utf-8')
+
+          for name, digest in expected.items():
+              actual = hashlib.sha256(Path(name).read_bytes()).hexdigest()
+              assert actual == digest, f'{name}: {actual}'
+          PY
           cat android-app-source.part-* > /tmp/android-app-source.b64
           base64 --decode /tmp/android-app-source.b64 > /tmp/android-app-source.tar.xz
+          echo 'cf3aeec69d2e11797e96b50c9df1d798bc0b486966e6cb4d08fb3ce0bbf3b8d8  /tmp/android-app-source.tar.xz' | sha256sum -c -
           xz --test /tmp/android-app-source.tar.xz
           mkdir -p android-app
           tar -xJf /tmp/android-app-source.tar.xz -C android-app
