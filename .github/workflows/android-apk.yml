@@ -18,12 +18,23 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          show-progress: false
 
       - name: Restore Android project
+        shell: bash
         run: |
+          set -euxo pipefail
+          wc -c android-app-source.part-*
+          cat android-app-source.part-* > /tmp/android-app-source.b64
+          base64 --decode /tmp/android-app-source.b64 > /tmp/android-app-source.tar.xz
+          wc -c /tmp/android-app-source.tar.xz
+          sha256sum /tmp/android-app-source.tar.xz
+          xz --test /tmp/android-app-source.tar.xz
           mkdir -p android-app
-          cat android-app-source.part-* | base64 --decode > /tmp/android-app-source.tar.xz
           tar -xJf /tmp/android-app-source.tar.xz -C android-app
+          test -f android-app/settings.gradle
+          test -f android-app/app/src/main/assets/index.html
 
       - name: Set up Java 17
         uses: actions/setup-java@v4
