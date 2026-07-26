@@ -16,13 +16,15 @@ jobs:
   build-apk:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          show-progress: false
+      - name: Checkout branch quietly
+        shell: bash
+        run: |
+          set -euxo pipefail
+          git clone --quiet --depth 1 --branch android-professional-apk https://github.com/aljwaal1/analis.git repo
 
       - name: Restore Android project
         shell: bash
+        working-directory: repo
         run: |
           set -euxo pipefail
           wc -c android-app-source.part-*
@@ -54,12 +56,12 @@ jobs:
           gradle-version: '8.10.2'
 
       - name: Build debug APK
-        working-directory: android-app
+        working-directory: repo/android-app
         run: gradle assembleDebug --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: Financial-Analyzer-Pro-APK
-          path: android-app/app/build/outputs/apk/debug/app-debug.apk
+          path: repo/android-app/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
