@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#102a43" />
+  <meta name="description" content="تطبيق عربي احترافي للتحليل المالي والنسب والمقارنات وجودة البيانات" />
+  <title>المحلل المالي الذكي</title>
+</head>
+<body>
+  <div id="app" class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="brand-mark">م</div>
+        <div>
+          <strong>المحلل المالي الذكي</strong>
+          <span>Financial Intelligence</span>
+        </div>
+      </div>
+
+      <nav class="nav-list" aria-label="التنقل الرئيسي">
+        <button class="nav-item active" data-view="dashboard"><span>◫</span> لوحة القيادة</button>
+        <button class="nav-item" data-view="import"><span>⇧</span> استيراد البيانات</button>
+        <button class="nav-item" data-view="quality"><span>✓</span> جودة البيانات</button>
+        <button class="nav-item" data-view="statements"><span>▤</span> القوائم المالية</button>
+        <button class="nav-item" data-view="ratios"><span>%</span> النسب المالية</button>
+        <button class="nav-item" data-view="comparisons"><span>⇄</span> المقارنات</button>
+        <button class="nav-item" data-view="insights"><span>✦</span> التحليل الذكي</button>
+        <button class="nav-item" data-view="reports"><span>▣</span> التقارير والتصدير</button>
+      </nav>
+
+      <div class="sidebar-foot">
+        <div class="privacy-badge"><span>●</span> البيانات محفوظة داخل الجهاز</div>
+        <small>الإصدار 2.0 تجريبي</small>
+      </div>
+    </aside>
+
+    <main class="main-area">
+      <header class="topbar">
+        <button id="menuBtn" class="icon-btn mobile-only" aria-label="فتح القائمة">☰</button>
+        <div class="top-title">
+          <h1 id="pageTitle">لوحة القيادة</h1>
+          <p id="pageSubtitle">ملخص تنفيذي للأداء المالي وأهم التنبيهات</p>
+        </div>
+        <div class="top-actions">
+          <select id="globalPeriod" class="control compact" aria-label="الفترة"></select>
+          <button id="loadSampleBtn" class="btn ghost">بيانات تجريبية</button>
+          <button id="quickImportBtn" class="btn primary">استيراد ملف</button>
+        </div>
+      </header>
+
+      <section class="view active" id="view-dashboard">
+        <div class="hero-grid">
+          <article class="score-card">
+            <div>
+              <span class="eyebrow">درجة الصحة المالية</span>
+              <strong id="healthScore">—</strong>
+              <p id="healthLabel">حمّل بيانات لبدء التحليل</p>
+            </div>
+            <div class="score-ring" id="scoreRing"><span id="scoreRingValue">0</span></div>
+          </article>
+          <article class="summary-card">
+            <span class="eyebrow">الملخص التنفيذي</span>
+            <h2 id="executiveHeadline">لا توجد بيانات بعد</h2>
+            <p id="executiveSummary">استورد ملف Excel أو CSV، أو استخدم البيانات التجريبية لرؤية التحليل الكامل.</p>
+          </article>
+        </div>
+
+        <div id="kpiGrid" class="kpi-grid"></div>
+
+        <div class="content-grid two-one">
+          <article class="panel">
+            <div class="panel-head">
+              <div><span class="eyebrow">اتجاه الأداء</span><h3>الإيرادات والمصروفات والربح</h3></div>
+              <div class="legend"><span class="rev-dot"></span>إيرادات <span class="exp-dot"></span>مصروفات <span class="profit-dot"></span>ربح</div>
+            </div>
+            <div class="chart-wrap"><canvas id="trendChart"></canvas></div>
+          </article>
+          <article class="panel">
+            <div class="panel-head"><div><span class="eyebrow">الأولوية</span><h3>أهم التنبيهات</h3></div></div>
+            <div id="alertsList" class="stack-list empty-state">لا توجد تنبيهات بعد.</div>
+          </article>
+        </div>
+
+        <div class="content-grid equal">
+          <article class="panel">
+            <div class="panel-head"><div><span class="eyebrow">هيكل المصروفات</span><h3>أعلى بنود المصروف</h3></div></div>
+            <div class="chart-wrap small"><canvas id="expenseChart"></canvas></div>
+          </article>
+          <article class="panel">
+            <div class="panel-head"><div><span class="eyebrow">الموازنة</span><h3>الفعلي مقابل المخطط</h3></div></div>
+            <div id="budgetSummary" class="budget-summary empty-state">لا توجد بيانات موازنة.</div>
+          </article>
+        </div>
+      </section>
+
+      <section class="view" id="view-import">
+        <div class="section-intro">
+          <div><span class="eyebrow">مصدر البيانات</span><h2>استيراد ذكي من Excel وCSV</h2><p>يتعرف التطبيق على الأعمدة العربية والإنجليزية، ثم يوحّدها قبل التحليل.</p></div>
+          <div class="inline-actions"><button id="downloadTemplateBtn" class="btn ghost">تنزيل قالب CSV</button><button id="clearDataBtn" class="btn danger">حذف البيانات</button></div>
+        </div>
+        <article class="panel upload-panel">
+          <input id="fileInput" type="file" accept=".xlsx,.xls,.csv" multiple hidden />
+          <div id="dropZone" class="drop-zone" tabindex="0">
+            <div class="upload-icon">⇧</div>
+            <h3>اسحب الملفات هنا أو اضغط للاختيار</h3>
+            <p>يمكن استيراد أكثر من ملف، وسيتم دمج السجلات بعد التحقق منها.</p>
+            <button class="btn primary" id="chooseFilesBtn">اختيار الملفات</button>
+          </div>
+          <div id="importProgress" class="import-progress hidden">
+            <div class="progress-track"><div id="progressBar" class="progress-bar"></div></div>
+            <p id="progressText">جاري قراءة الملف…</p>
+          </div>
+        </article>
+        <div class="content-grid equal">
+          <article class="panel">
+            <div class="panel-head"><div><span class="eyebrow">الحالة</span><h3>ملخص الاستيراد</h3></div></div>
+            <div id="importStats" class="mini-stats"></div>
+          </article>
+          <article class="panel">
+            <div class="panel-head"><div><span class="eyebrow">المتطلبات</span><h3>الأعمدة المدعومة</h3></div></div>
+            <div class="field-chips">
+              <span>الفترة</span><span>القائمة المالية</span><span>الفئة</span><span>البند</span><span>القيمة</span><span>الفرع</span><span>مركز التكلفة</span><span>العميل</span><span>الموازنة</span><span>العملة</span>
+            </div>
+          </article>
+        </div>
+        <article class="panel">
+          <div class="panel-head"><div><span class="eyebrow">معاينة</span><h3>أحدث السجلات المستوردة</h3></div></div>
+          <div class="table-wrap"><table><thead id="previewHead"></thead><tbody id="previewBody"></tbody></table></div>
+        </article>
+      </section>
+
+      <section class="view" id="view-quality">
+        <div class="section-intro">
+          <div><span class="eyebrow">موثوقية النتائج</span><h2>فحص جودة البيانات</h2><p>قبل احتساب النسب، يتحقق التطبيق من الاتساق والتكرار والحقول الناقصة.</p></div>
+          <button id="runQualityBtn" class="btn primary">إعادة الفحص</button>
+        </div>
+        <div id="qualityScoreCards" class="kpi-grid compact-grid"></div>
+        <article class="panel">
+          <div class="panel-head"><div><span class="eyebrow">نتائج الفحص</span><h3>الملاحظات والإجراءات المقترحة</h3></div></div>
+          <div id="qualityIssues" class="quality-list empty-state">لا توجد بيانات لفحصها.</div>
+        </article>
+      </section>
+
+      <section class="view" id="view-statements">
+        <div class="section-intro">
+          <div><span class="eyebrow">التحليل المالي</span><h2>القوائم المالية والتحليل الأفقي والرأسي</h2><p>قارن الفترات، اعرف مساهمة كل بند، وحدد مصادر التغير الرئيسية.</p></div>
+          <div class="filter-row">
+            <select id="statementPeriod" class="control"></select>
+            <select id="statementType" class="control"><option value="income">قائمة الدخل</option><option value="balance">المركز المالي</option><option value="cashflow">التدفقات النقدية</option></select>
+          </div>
+        </div>
+        <div id="statementCards" class="kpi-grid compact-grid"></div>
+        <div class="content-grid equal">
+          <article class="panel"><div class="panel-head"><div><span class="eyebrow">التحليل الرأسي</span><h3>نسبة كل بند من الإجمالي</h3></div></div><div class="chart-wrap"><canvas id="verticalChart"></canvas></div></article>
+          <article class="panel"><div class="panel-head"><div><span class="eyebrow">التحليل الأفقي</span><h3>التغير عن الفترة السابقة</h3></div></div><div class="chart-wrap"><canvas id="horizontalChart"></canvas></div></article>
+        </div>
+        <article class="panel"><div class="panel-head"><div><span class="eyebrow">تفاصيل</span><h3>جدول البنود</h3></div></div><div class="table-wrap"><table><thead id="statementHead"></thead><tbody id="statementBody"></tbody></table></div></article>
+      </section>
+
+      <section class="view" id="view-ratios">
+        <div class="section-intro">
+          <div><span class="eyebrow">مؤشرات الأداء</span><h2>النسب المالية المتقدمة</h2><p>النتيجة، المقارنة بالفترة السابقة، التفسير، ودرجة التقييم.</p></div>
+          <div class="filter-row"><select id="ratioPeriod" class="control"></select><select id="ratioGroup" class="control"><option value="all">كل المجموعات</option><option value="liquidity">السيولة</option><option value="profitability">الربحية</option><option value="leverage">المديونية</option><option value="efficiency">الكفاءة</option><option value="growth">النمو</option></select></div>
+        </div>
+        <div id="ratioGrid" class="ratio-grid"></div>
+      </section>
+
+      <section class="view" id="view-comparisons">
+        <div class="section-intro">
+          <div><span class="eyebrow">تحليل متعدد الأبعاد</span><h2>المقارنات والترتيب</h2><p>قارن الفروع والعملاء ومراكز التكلفة والفترات حسب المقياس المختار.</p></div>
+          <div class="filter-row"><select id="compareDimension" class="control"><option value="period">الفترة</option><option value="branch">الفرع</option><option value="costCenter">مركز التكلفة</option><option value="customer">العميل</option><option value="category">الفئة</option></select><select id="compareMetric" class="control"><option value="revenue">الإيرادات</option><option value="expenses">المصروفات</option><option value="profit">الربح</option><option value="budgetVariance">انحراف الموازنة</option><option value="value">إجمالي القيمة</option></select></div>
+        </div>
+        <div class="content-grid two-one">
+          <article class="panel"><div class="panel-head"><div><span class="eyebrow">المقارنة</span><h3 id="comparisonTitle">النتائج</h3></div></div><div class="chart-wrap"><canvas id="comparisonChart"></canvas></div></article>
+          <article class="panel"><div class="panel-head"><div><span class="eyebrow">الترتيب</span><h3>الأفضل والأعلى تأثيرًا</h3></div></div><div id="rankingList" class="ranking-list empty-state">لا توجد بيانات.</div></article>
+        </div>
+        <article class="panel"><div class="panel-head"><div><span class="eyebrow">التفاصيل</span><h3>جدول المقارنة</h3></div></div><div class="table-wrap"><table><thead id="comparisonHead"></thead><tbody id="comparisonBody"></tbody></table></div></article>
+      </section>
+
+      <section class="view" id="view-insights">
+        <div class="section-intro">
+          <div><span class="eyebrow">محرك التفسير</span><h2>التحليل الذكي والتوصيات</h2><p>يحوّل الأرقام إلى ملاحظات مفهومة، ويحدد السبب والأثر والإجراء المقترح.</p></div>
+          <select id="insightPeriod" class="control"></select>
+        </div>
+        <div id="insightSummaryCards" class="kpi-grid compact-grid"></div>
+        <div id="insightFeed" class="insight-feed empty-state">حمّل البيانات لعرض التحليل الذكي.</div>
+      </section>
+
+      <section class="view" id="view-reports">
+        <div class="section-intro">
+          <div><span class="eyebrow">المخرجات</span><h2>التقارير والتصدير</h2><p>أنشئ نسخة قابلة للمشاركة أو النسخ الاحتياطي من التحليل والبيانات.</p></div>
+        </div>
+        <div class="export-grid">
+          <button class="export-card" id="exportJsonBtn"><strong>JSON</strong><span>نسخة احتياطية كاملة</span></button>
+          <button class="export-card" id="exportCsvBtn"><strong>CSV</strong><span>البيانات المنظّمة</span></button>
+          <button class="export-card" id="printReportBtn"><strong>PDF</strong><span>طباعة أو حفظ التقرير</span></button>
+          <button class="export-card" id="exportSummaryBtn"><strong>TXT</strong><span>ملخص إداري سريع</span></button>
+        </div>
+        <article class="panel report-preview" id="reportPreview">
+          <div class="report-brand"><div class="brand-mark">م</div><div><h2>تقرير التحليل المالي</h2><p id="reportDate"></p></div></div>
+          <div id="reportContent" class="empty-state">لا توجد بيانات لإعداد التقرير.</div>
+        </article>
+      </section>
+    </main>
+
+    <nav class="bottom-nav mobile-only">
+      <button class="bottom-item active" data-view="dashboard">الرئيسية</button>
+      <button class="bottom-item" data-view="ratios">النسب</button>
+      <button class="bottom-item" data-view="comparisons">المقارنات</button>
+      <button class="bottom-item" data-view="insights">التحليل</button>
+    </nav>
+
+    <div id="toast" class="toast hidden"></div>
+    <div id="overlay" class="overlay hidden"></div>
+  </div>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
