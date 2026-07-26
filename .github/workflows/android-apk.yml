@@ -25,19 +25,8 @@ jobs:
         working-directory: repo
         run: |
           set -euo pipefail
-          echo PART01_LATE_BLOCKS
-          for off in $(seq 12000 100 13900); do printf '%s ' "$off"; dd if=android-app-source.part-01 bs=1 skip="$off" count=100 status=none | sha256sum; done
-          echo PART01_TAIL
-          tail -c 100 android-app-source.part-01; echo
-          python3 - <<'PY'
-          from pathlib import Path
-          import hashlib
-          p2 = Path('android-app-source.part-02')
-          s2 = p2.read_text(encoding='utf-8')
-          if len(s2) == 12847:
-              s2 = s2[:9753] + 'm' + s2[9753:]
-          print('PART02_REPAIRED', hashlib.sha256(s2.encode()).hexdigest())
-          PY
+          echo PART01_DELETION_BLOCK
+          dd if=android-app-source.part-01 bs=1 skip=12500 count=100 status=none; echo
           exit 1
 
       - name: Set up Java 17
