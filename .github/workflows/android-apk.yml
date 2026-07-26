@@ -44,6 +44,8 @@ jobs:
           echo 'cf3aeec69d2e11797e96b50c9df1d798bc0b486966e6cb4d08fb3ce0bbf3b8d8  /tmp/android-app.tar.xz' | sha256sum -c -
           mkdir android-app
           tar -xJf /tmp/android-app.tar.xz -C android-app
+          sed -i 's/minSdk 24/minSdk 26/' android-app/app/build.gradle
+          grep 'minSdk 26' android-app/app/build.gradle
 
       - name: Set up Java 17
         uses: actions/setup-java@v4
