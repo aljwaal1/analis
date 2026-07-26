@@ -25,10 +25,8 @@ jobs:
         working-directory: repo
         run: |
           set -euo pipefail
-          echo PART01_BAD_BLOCK
-          dd if=android-app-source.part-01 bs=1 skip=11800 count=100 status=none; echo
-          echo PART02_BLOCKS
-          for off in $(seq 8800 100 9900); do printf '%s ' "$off"; dd if=android-app-source.part-02 bs=1 skip="$off" count=100 status=none | sha256sum; done
+          echo PART02_BAD_BLOCK
+          dd if=android-app-source.part-02 bs=1 skip=9700 count=100 status=none; echo
           cat android-app-source.part-* > /tmp/android-app-source.b64
           base64 --decode /tmp/android-app-source.b64 > /tmp/android-app-source.tar.xz
           xz --test /tmp/android-app-source.tar.xz
