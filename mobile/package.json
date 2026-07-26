@@ -1,0 +1,25 @@
+{
+  "name": "financial-analysis-mobile",
+  "version": "2.0.0-beta.1",
+  "private": true,
+  "type": "module",
+  "description": "Professional Arabic offline-first financial analysis Android app",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "android:add": "cap add android",
+    "android:sync": "cap sync android",
+    "android:open": "cap open android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.4.0",
+    "@capacitor/core": "^7.4.0",
+    "chart.js": "^4.4.7",
+    "xlsx": "0.18.5"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^7.4.0",
+    "vite": "^6.1.0"
+  }
+}
