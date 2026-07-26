@@ -26,11 +26,10 @@ jobs:
         run: |
           set -euo pipefail
           wc -c android-app-source.part-*
-          sha256sum android-app-source.part-*
-          echo PART01_PREFIXES
-          for n in 12000 13000 13500 13900 13950 13990 13999; do printf '%s ' "$n"; head -c "$n" android-app-source.part-01 | sha256sum; done
-          echo PART02_PREFIXES
-          for n in 4000 8000 10000 12000 12500 12700 12800 12840 12847; do printf '%s ' "$n"; head -c "$n" android-app-source.part-02 | sha256sum; done
+          echo PART01_BLOCKS
+          for off in $(seq 10000 100 11900); do printf '%s ' "$off"; dd if=android-app-source.part-01 bs=1 skip="$off" count=100 status=none | sha256sum; done
+          echo PART02_BLOCKS
+          for off in $(seq 8000 100 9900); do printf '%s ' "$off"; dd if=android-app-source.part-02 bs=1 skip="$off" count=100 status=none | sha256sum; done
           cat android-app-source.part-* > /tmp/android-app-source.b64
           base64 --decode /tmp/android-app-source.b64 > /tmp/android-app-source.tar.xz
           xz --test /tmp/android-app-source.tar.xz
