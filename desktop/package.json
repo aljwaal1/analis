@@ -1,0 +1,63 @@
+{
+  "name": "financial-analysis-desktop",
+  "version": "2.0.0-beta.1",
+  "private": true,
+  "description": "Professional Arabic offline-first financial analysis desktop app for Windows",
+  "main": "main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "dist:win": "electron-builder --win nsis portable --x64"
+  },
+  "devDependencies": {
+    "electron": "^35.0.0",
+    "electron-builder": "^26.0.12"
+  },
+  "build": {
+    "appId": "com.aljwaal.financialanalysis",
+    "productName": "المحلل المالي الذكي",
+    "copyright": "Copyright © 2026 aljwaal1",
+    "asar": true,
+    "files": [
+      "main.cjs"
+    ],
+    "extraResources": [
+      {
+        "from": "../mobile/dist",
+        "to": "app-dist",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "directories": {
+      "output": "release"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "المحلل المالي الذكي",
+      "artifactName": "Financial-Analysis-Setup-${version}-${arch}.${ext}"
+    },
+    "portable": {
+      "artifactName": "Financial-Analysis-Portable-${version}-${arch}.${ext}"
+    }
+  }
+}
