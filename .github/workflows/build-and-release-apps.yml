@@ -1,0 +1,182 @@
+name: Build and Release Android and Windows Apps
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'mobile/**'
+      - 'desktop/**'
+      - '.github/workflows/build-and-release-apps.yml'
+  pull_request:
+    paths:
+      - 'mobile/**'
+      - 'desktop/**'
+      - '.github/workflows/build-and-release-apps.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: mobile/package.json
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Build web application
+        run: npm run build
+
+      - name: Generate Android project
+        run: npx cap add android
+
+      - name: Sync Capacitor
+        run: npx cap sync android
+
+      - name: Build APK
+        working-directory: mobile/android
+        run: ./gradlew assembleDebug --no-daemon
+
+      - name: Prepare Android files
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          mkdir -p release
+          cp android/app/build/outputs/apk/debug/app-debug.apk "release/Financial-Analysis-Android-${VERSION}.apk"
+          sha256sum "release/Financial-Analysis-Android-${VERSION}.apk" > release/Android-SHA256SUMS.txt
+
+      - name: Upload Android artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: financial-analysis-android
+          path: |
+            mobile/release/Financial-Analysis-Android-*.apk
+            mobile/release/Android-SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 30
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: |
+            mobile/package.json
+            desktop/package.json
+
+      - name: Install web dependencies
+        working-directory: mobile
+        run: npm install --no-audit --no-fund
+
+      - name: Build shared web application
+        working-directory: mobile
+        run: npm run build
+
+      - name: Install desktop dependencies
+        working-directory: desktop
+        run: npm install --no-audit --no-fund
+
+      - name: Build Windows installer and portable app
+        working-directory: desktop
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+        run: npm run dist:win
+
+      - name: Create Windows checksums
+        shell: pwsh
+        run: |
+          $files = Get-ChildItem desktop/release/Financial-Analysis-*.exe
+          $lines = foreach ($file in $files) {
+            $hash = (Get-FileHash $file.FullName -Algorithm SHA256).Hash.ToLower()
+            "$hash  $($file.Name)"
+          }
+          $lines | Set-Content desktop/release/Windows-SHA256SUMS.txt
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: financial-analysis-windows
+          path: |
+            desktop/release/Financial-Analysis-*.exe
+            desktop/release/Windows-SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 30
+
+  publish-release:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    needs:
+      - build-android
+      - build-windows
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Download application artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: financial-analysis-*
+          path: release-assets
+          merge-multiple: true
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          VERSION=$(node -p "require('./mobile/package.json').version")
+          TAG="v${VERSION}"
+          cat > release-notes.md <<'NOTES'
+          أول إصدار موحد من تطبيق المحلل المالي الذكي.
+
+          الملفات المتاحة:
+          - APK لأجهزة Android.
+          - ملف تثبيت Windows بصيغة EXE.
+          - نسخة Windows Portable تعمل دون تثبيت.
+          - ملفات SHA-256 للتحقق من سلامة التنزيلات.
+
+          هذه نسخة تجريبية أولى للاختبار، وتحفظ البيانات محليًا داخل الجهاز.
+          NOTES
+
+          if ! gh release view "$TAG" >/dev/null 2>&1; then
+            EXTRA_ARGS=()
+            if [[ "$TAG" == *-* ]]; then EXTRA_ARGS+=(--prerelease); fi
+            gh release create "$TAG" --target "$GITHUB_SHA" --title "المحلل المالي الذكي ${TAG}" --notes-file release-notes.md "${EXTRA_ARGS[@]}"
+          fi
+
+          while IFS= read -r file; do
+            gh release upload "$TAG" "$file" --clobber
+          done < <(find release-assets -type f -print)
