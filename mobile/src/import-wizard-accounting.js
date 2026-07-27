@@ -53,3 +53,4 @@ document.addEventListener('click',event=>{const button=event.target.closest?.('.
 const style=document.createElement('style');style.textContent='.toast[data-type="error"]{background:#991b1b}.toast[data-type="success"]{background:#166534}';document.head.appendChild(style);
 await import('./import-wizard.js');
 const topTemplate=document.getElementById('downloadTemplateBtn');if(topTemplate){const button=topTemplate.cloneNode(true);topTemplate.replaceWith(button);button.addEventListener('click',()=>{const f=flow(),stage=stages.find(s=>!f[s.id].complete)?.id||'cashflow';template(stage)})}
+await import('./ratio-data.js');
