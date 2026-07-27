@@ -1,0 +1,89 @@
+name: Build Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'feature/pro-financial-android-app'
+  pull_request:
+    paths:
+      - 'mobile/**'
+      - '.github/workflows/build-android.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: mobile/package.json
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Build web application
+        id: web_build
+        continue-on-error: true
+        run: npm run build > vite-build.log 2>&1
+
+      - name: Upload Vite build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vite-build-log
+          path: mobile/vite-build.log
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Stop when web build failed
+        if: steps.web_build.outcome == 'failure'
+        run: |
+          cat vite-build.log
+          exit 1
+
+      - name: Generate Android project
+        run: npx cap add android
+
+      - name: Sync Capacitor
+        run: npx cap sync android
+
+      - name: Build debug APK
+        working-directory: mobile/android
+        run: ./gradlew assembleDebug --no-daemon
+
+      - name: Prepare APK
+        run: |
+          mkdir -p release
+          cp android/app/build/outputs/apk/debug/app-debug.apk release/financial-analysis-v2-debug.apk
+          sha256sum release/financial-analysis-v2-debug.apk > release/SHA256SUMS.txt
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: financial-analysis-android-apk
+          path: |
+            mobile/release/financial-analysis-v2-debug.apk
+            mobile/release/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 30
